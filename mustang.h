@@ -57,9 +57,6 @@ class Mustang {
   // Synchronize access to preset names
   Condition<bool> preset_names_sync;
 
-  // 0-99 = amp preset, 100-111 = mod preset, 112-123 = rev/delay preset
-  char preset_names[124][33];
-
   // Index to current amp preset 
   unsigned curr_preset_idx;
 
@@ -114,7 +111,6 @@ class Mustang {
   int direct_control( unsigned char *cmd );
   
   int sendCmd( unsigned char *buffer );
-  int requestDump( void );
   int executeModelChange( unsigned char *buffer );
 
   void updateAmpObj( const unsigned char *data );
@@ -131,6 +127,12 @@ class Mustang {
   }
 
 public:
+  // 0-99 = amp preset, 100-111 = mod preset, 112-123 = rev/delay preset
+  class PresetNames {
+    public:
+    char names[124][33];
+  } preset_names;
+
   Mustang( void );
 
   int initialize( void );
@@ -138,6 +140,9 @@ public:
   
   int commStart( void );
   int commShutdown( void );
+
+  int requestDump( void );
+  PresetNames * getPresetNames( void );
 
   int setAmp( int ord );
   int ampControl( int cc, int value );

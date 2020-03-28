@@ -49,6 +49,7 @@ const Mustang::usb_id Mustang::amp_ids[] = {
     { M_MINI,           0x03, false },
     { M_FLOOR,          0x03, false },
     { MI_II_V2,         0xc1, true },
+    { MIII_IV_V_V2,     0x16, true },
     { MIII_IV_V_V2,     0xc1, true },
     { 0,                0x00, false }
 };
@@ -99,7 +100,7 @@ Mustang::handleInput( void ) {
     if ( total_count!=64 ) continue;
     total_count = 0;
 
-#ifdef DEBUG
+#if 0 //def DEBUG
     for ( int i=0; i<64; i++ ) fprintf( stderr, "%02x ", read_buf[i] );
     fprintf( stderr, "\n" );
 #endif
@@ -137,8 +138,8 @@ Mustang::handleInput( void ) {
           // Preset name
           pthread_mutex_lock( &preset_names_sync.lock );
 
-          strncpy( preset_names[idx], (const char *)read_buf+16, 32 );
-          preset_names[idx][32] = '\0';
+          strncpy( preset_names.names[idx], (const char *)read_buf+16, 32 );
+          preset_names.names[idx][32] = '\0';
 
           // Always take the most recent amp preset name as
           // current. This will properly account for its appearance at
@@ -430,6 +431,9 @@ Mustang::commShutdown( void ) {
 
 int
 Mustang::deinitialize( void ) {
+#ifdef DEBUG
+  fprintf(stderr, "deinitialize\n");
+#endif
   if ( usb_io==NULL) return 0;
   
   int rc = libusb_release_interface( usb_io, 0 );
@@ -449,6 +453,9 @@ int
 Mustang::requestDump( void ) {
   int rc;
   unsigned char buffer[64];
+#ifdef DEBUG
+  fprintf(stderr, "requestDump\n");
+#endif
 
   ///// Critical Section
   //
@@ -473,6 +480,10 @@ Mustang::requestDump( void ) {
 #endif
 
   return 0;
+}
+
+Mustang::PresetNames * Mustang::getPresetNames( void ) {
+    return &preset_names;
 }
 
 

@@ -18,10 +18,50 @@
 # define RT_ERROR RtMidiError
 #endif
 
+RtMidiOut *midi_out = NULL;
+
 static Mustang mustang;
 
 static int channel;
 
+void handle_sysex_get_patches(std::vector< unsigned char > *message, void *userData ) {
+    bool refresh = ((int)(*message)[2] > 63);
+
+    if (refresh) {
+        int rc = mustang.requestDump();
+        if ( rc ) {
+            fprintf( stderr, "requestDump failed  RC = %d\n", rc );
+        }
+    }
+    
+    Mustang::PresetNames *preset_names = mustang.getPresetNames();
+    int i, j;
+    const int name_len = 32; // sizeof(preset_names->names[0]);
+    unsigned char msg[2+name_len*300+1];
+    unsigned char *pos = msg;
+
+    *pos++ = 0xF0;
+    *pos++ = 0x01;
+    for (i=0; i<(sizeof(preset_names->names)/name_len); i++) {
+        if (preset_names->names[i][0] != '\0')
+        {
+            strncpy((char *)pos, preset_names->names[i], name_len);
+            pos += strlen((char *)pos);
+            pos++;
+        }
+    }
+    *pos++ = 0xF7;
+    midi_out->sendMessage(msg, pos-msg);
+}
+
+void handle_sysex(std::vector< unsigned char > *message, void *userData ) {
+    int msgType = (int)(*message)[1];
+    switch (msgType) {
+    case 0x01: // Get patchnames
+        handle_sysex_get_patches(message, userData );
+        break;
+    }
+}
 
 void message_action( double deltatime, std::vector< unsigned char > *message, void *userData ) {
 #if 0
@@ -32,9 +72,15 @@ void message_action( double deltatime, std::vector< unsigned char > *message, vo
 
   // Is this for us?
   int msg_channel = (*message)[0] & 0x0f;
-  if ( msg_channel != channel ) return;
 
   int msg_type = (*message)[0] & 0xf0;
+
+#ifdef DEBUG
+  fprintf(stderr, "message: dtime=%.4f channel=%d type=%02x data=[%02x %02x]\n",
+		  deltatime, msg_channel, msg_type, (*message)[1], (*message)[2]);
+#endif
+
+  if ( msg_channel != channel ) return;
 
   switch ( msg_type ) {
 
@@ -120,7 +166,11 @@ void message_action( double deltatime, std::vector< unsigned char > *message, vo
     }
   }
   break;
-
+  case 0xf0: // sysex message
+    handle_sysex(message, userData);
+  
+  break;
+ 
   default:
     break;
   }
@@ -141,9 +191,10 @@ void usage() {
 
 
 int main( int argc, const char **argv ) {
-  if ( argc != 3 ) usage();
+  if ( argc != 4 ) usage();
 
-  RtMidiIn input_handler;
+  RtMidiIn input_handler(RtMidi::UNSPECIFIED, "mustang-midi-bridge");
+  midi_out = new RtMidiOut(RtMidi::UNSPECIFIED, "mustang-midi-bridge2");
 
   char *endptr;
 
@@ -159,7 +210,26 @@ int main( int argc, const char **argv ) {
   else {
     if ( port < 0 ) usage();
     try {
-      input_handler.openPort( port );
+      input_handler.openPort( port, "control-input" );
+    }
+    catch ( RT_ERROR &error ) {
+      exit( 1 );
+    }
+  }
+
+  port = (int) strtol( argv[3], &endptr, 10 );
+  if ( endptr == argv[3] ) {
+    try {
+      midi_out->openVirtualPort( argv[3] );
+    }
+    catch ( RT_ERROR &error ) {
+      exit( 1 );
+    }
+  }
+  else {
+    if ( port < 0 ) usage();
+    try {
+      midi_out->openPort( 0, "control-output" ); // was port
     }
     catch ( RT_ERROR &error ) {
       exit( 1 );
@@ -173,19 +243,27 @@ int main( int argc, const char **argv ) {
   input_handler.setCallback( &message_action );
 
   // Don't want sysex, timing, active sense
-  input_handler.ignoreTypes( true, true, true );
+  input_handler.ignoreTypes( false, true, true );
 
+  fprintf( stderr, "Mustang initializing...\n" );
   if ( 0 != mustang.initialize() ) {
     fprintf( stderr, "Cannot setup USB communication\n" );
     exit( 1 );
   }
+  fprintf( stderr, "Starting comms...\n" );
   if ( 0 != mustang.commStart() ) {
     fprintf( stderr, "Thread setup and init failed\n" );
     exit( 1 );
   }
 
+  fprintf( stderr, "Requesting dump...\n" );
+  if (0 != mustang.requestDump()) {
+    fprintf( stderr, "Request dump failed\n" );
+    exit( 1 );
+  }
   // Block and wait for signal 
   pause();
+  fprintf(stderr, "Caught signal... shutting down\n");
 
   if ( 0 != mustang.commShutdown() ) {
     fprintf( stderr, "Thread shutdown failed\n" );
