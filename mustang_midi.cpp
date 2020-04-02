@@ -7,6 +7,7 @@
 #include "mustang.h"
 #include "stomp.h"
 #include "delay.h"
+#include "reverb.h"
 
 // If you see a compiler error complaining about a missing 
 // symbol 'RtMidiError' you probably have an old version of
@@ -101,6 +102,12 @@ void message_out_action(AmpEvent *ev) {
         {
         DelayCC *delay = (DelayCC *)ev->ptr;
         fprintf(stderr, "DelayChanged -%s-\n", delay->to_json().c_str());
+        }
+        break;
+     case AmpEvent::ReverbChanged:
+        {
+        ReverbCC *reverb = (ReverbCC *)ev->ptr;
+        fprintf(stderr, "ReverbChanged -%s-\n", reverb->to_json().c_str());
         }
         break;
     default:

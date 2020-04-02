@@ -22,7 +22,7 @@ class StompCC;
 
 class AmpEvent {
     public:
-        typedef enum { PatchChanged, StompChanged, DelayChanged } event_type_t;
+        typedef enum { PatchChanged, StompChanged, DelayChanged, ReverbChanged } event_type_t;
         event_type_t type;
 
         int pint1;

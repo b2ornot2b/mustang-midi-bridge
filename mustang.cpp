@@ -227,6 +227,7 @@ Mustang::handleInput( void ) {
             updateReverbObj( read_buf );
             
             pthread_mutex_unlock( &dsp_sync[idx].lock );
+            emit_event(new AmpEvent(AmpEvent::ReverbChanged, (void *)curr_reverb));
           }
           break;
         }
@@ -1134,6 +1135,9 @@ Mustang::updateReverbObj( const unsigned char *data ) {
   else {
     curr_reverb = new ReverbCC( this, model, slot );
   }
+    for (auto i=0; i<5; i++)
+        curr_reverb->param.push_back(data[32+i]);
+
 }
 
 
