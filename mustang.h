@@ -20,6 +20,24 @@ class DelayCC;
 class ModCC;
 class StompCC;
 
+class AmpEvent {
+    public:
+        typedef enum { PatchChanged, StompChanged, DelayChanged } event_type_t;
+        event_type_t type;
+
+        int pint1;
+        void *ptr;
+
+        AmpEvent(event_type_t evt, int p1) {
+            type = evt;
+            pint1 = p1;
+        }
+        AmpEvent(event_type_t evt, void *p) {
+            type = evt;
+            ptr = p;
+        }
+};
+typedef void (*event_callback_t) (AmpEvent *) ;
 
 class Mustang {
 
@@ -46,6 +64,17 @@ class Mustang {
       pthread_cond_init( &(cond), NULL);
     }
   };
+
+  event_callback_t event_cb;
+  public:
+  void setEventCallback(event_callback_t cb) {
+      event_cb = cb;
+  }
+
+  inline void emit_event(AmpEvent *ev) {
+      if (event_cb)
+          event_cb(ev);
+  }
 
   // Identify patch-change ack / DSP parm update
   static const unsigned char state_prefix[];

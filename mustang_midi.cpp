@@ -5,6 +5,8 @@
 #include <cerrno>
 
 #include "mustang.h"
+#include "stomp.h"
+#include "delay.h"
 
 // If you see a compiler error complaining about a missing 
 // symbol 'RtMidiError' you probably have an old version of
@@ -46,6 +48,7 @@ void handle_sysex_get_patches(std::vector< unsigned char > *message, void *userD
         if (preset_names->names[i][0] != '\0')
         {
             strncpy((char *)pos, preset_names->names[i], name_len);
+	    fprintf(stderr, "[%s]\n", pos);
             pos += strlen((char *)pos);
             pos++;
         }
@@ -59,6 +62,49 @@ void handle_sysex(std::vector< unsigned char > *message, void *userData ) {
     switch (msgType) {
     case 0x01: // Get patchnames
         handle_sysex_get_patches(message, userData );
+        break;
+    }
+}
+
+void send_sysex(unsigned char *msg, size_t len) {
+    unsigned char dmsg[1+len+1];
+    unsigned char *pos = dmsg;
+
+    *pos++ = 0xF0;
+    memcpy(pos, msg, len);
+    pos += len;
+    *pos++ = 0xF7;
+    midi_out->sendMessage(dmsg, pos-dmsg);
+}
+
+void message_out_action(AmpEvent *ev) {
+#ifdef DEBUG
+    fprintf(stderr, "event: ev=%p type=%d pint1=%d\n", ev, ev->type, ev->pint1);
+#endif
+    switch (ev->type) {
+    case AmpEvent::PatchChanged:
+        {
+        fprintf(stderr, "PatchChanged patch=%d\n", ev->pint1);
+        unsigned char msb = (ev->pint1 & 0x3f80) >> 7;
+        unsigned char lsb = (ev->pint1 & 0x007f);
+        unsigned char msg[] = { 0x02, msb, lsb };
+        send_sysex(msg, sizeof(msg));
+        }
+        break;
+    case AmpEvent::StompChanged:
+        {
+        StompCC *stomp = (StompCC *)ev->ptr;
+        fprintf(stderr, "StompChanged -%s-\n", stomp->to_json().c_str());
+        }
+        break;
+    case AmpEvent::DelayChanged:
+        {
+        DelayCC *delay = (DelayCC *)ev->ptr;
+        fprintf(stderr, "DelayChanged -%s-\n", delay->to_json().c_str());
+        }
+        break;
+    default:
+        fprintf(stderr, "Unhandled event type=%d\n", ev->type);
         break;
     }
 }
@@ -241,6 +287,7 @@ int main( int argc, const char **argv ) {
   if ( channel < 0 || channel > 15 ) usage();
   
   input_handler.setCallback( &message_action );
+  mustang.setEventCallback( &message_out_action );
 
   // Don't want sysex, timing, active sense
   input_handler.ignoreTypes( false, true, true );

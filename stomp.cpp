@@ -2,6 +2,7 @@
 #include "stomp.h"
 #include "magic.h"
 
+
 int 
 StompCC::continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd ) {
   cmd[2] = 0x03;

@@ -4,6 +4,14 @@
 #define _STOMP_H
 
 #include <cstring>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+//#include "json.hpp"
+//using namespace nlohmann;
+using namespace std;
 
 class Mustang;
 
@@ -17,6 +25,9 @@ protected:
   int continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
   int discrete_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
 
+  string name;
+  vector<string> paramName;
+
 public:
   StompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -29,6 +40,22 @@ public:
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
 
+  vector<int> param;
+
+
+  const std::string to_json(void) {
+    std::stringstream ss;
+    ss   << "{ \"name\": \"" << name << "\", "
+         << " \"type\": \"Stomp\", "
+         << "  \"params\": { ";
+    for (auto i=0; i < paramName.size(); i++) {
+        if (i) ss << ",";
+        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+    }
+    ss   << "}}";
+    return ss.str();
+  }
+
 private:
   virtual int cc29( int value, unsigned char *cmd ) = 0;
   virtual int cc30( int value, unsigned char *cmd ) = 0;
@@ -38,9 +65,13 @@ private:
  };
 
 
+
 class OverdriveCC : public StompCC {
 public:
-  OverdriveCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  OverdriveCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+    name = "Overdrive";
+    paramName = { "Level", "Gain", "Low", "Mid", "High" };
+}
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -54,10 +85,12 @@ private:
   virtual int cc33( int value, unsigned char *cmd ) { return continuous_control( 0x04, 0x04, 0x01, value, cmd );}
 };
 
-
 class WahCC : public StompCC {
 public:
-  WahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  WahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+    name = "Wah";
+    paramName = { "Mix", "Frequency", "Heel Freq", "Toe Freq", "High Q" };
+ }
 private:
   // Mix
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -77,7 +110,10 @@ private:
 
 class FuzzCC : public StompCC {
 public:
-  FuzzCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  FuzzCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+    name = "Fuzz";
+    paramName = { "Level", "Gain", "Sensitivity", "Octave", "Peak" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -94,7 +130,10 @@ private:
 
 class FuzzTouchWahCC : public StompCC {
 public:
-  FuzzTouchWahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  FuzzTouchWahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+     name = "Fuzz Touch Wha";
+     paramName = { "Level", "Gain", "Sensitivity", "Octave", "Peak" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -111,7 +150,10 @@ private:
 
 class SimpleCompCC : public StompCC {
 public:
-  SimpleCompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  SimpleCompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "Compressor";
+      paramName = { "Type" };
+  }
 private:
   // Type
   virtual int cc29( int value, unsigned char *cmd ) { 
@@ -127,7 +169,10 @@ private:
 
 class CompCC : public StompCC {
 public:
-  CompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  CompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+    name = "Compressor";
+    paramName = { "Level", "Threshold", "Ratio", "Attack Time", "Release Time" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -144,7 +189,10 @@ private:
 
 class RangerCC : public StompCC {
 public:
-  RangerCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot) : StompCC(theAmp,model,theSlot) {}
+  RangerCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot) : StompCC(theAmp,model,theSlot) {
+      name = "Ranger Boost";
+      paramName = { "Level", "Gain", "Lo-cut", "Bright" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -161,7 +209,10 @@ private:
 
 class GreenBoxCC : public StompCC {
 public:
-  GreenBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  GreenBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "Green Box";
+      paramName = { "Level", "Gain", "Tone", "Blend" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -178,9 +229,10 @@ private:
 
 class OrangeBoxCC : public StompCC {
 public:
-  OrangeBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
-private:
-  // Level
+  OrangeBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "Orange Box";
+      paramName = { "Level", "Dist", "Tone" };
+    }
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
   // Dist
   virtual int cc30( int value, unsigned char *cmd ) { return continuous_control( 0x01, 0x02, 0x01, value, cmd );}
@@ -195,7 +247,10 @@ private:
 
 class BlackBoxCC : public StompCC {
 public:
-  BlackBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  BlackBoxCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "Black Box";
+        paramName = { "Level", "Dist", "Filter" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -212,7 +267,10 @@ private:
 
 class BigFuzzCC : public StompCC {
 public:
-  BigFuzzCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  BigFuzzCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "Big Fuzz";
+      paramName = { "Level", "Tone", "Sustain" };
+  }
 private:
   // Level
   virtual int cc29( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -229,7 +287,10 @@ private:
 
 class NullStompCC : public StompCC {
 public:
-  NullStompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {}
+  NullStompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : StompCC(theAmp,model,theSlot) {
+      name = "None";
+      paramName = {};
+  }
 private:
   virtual int cc29( int value, unsigned char *cmd ) { return -1;}
   virtual int cc30( int value, unsigned char *cmd ) { return -1;}

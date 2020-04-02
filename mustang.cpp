@@ -100,7 +100,7 @@ Mustang::handleInput( void ) {
     if ( total_count!=64 ) continue;
     total_count = 0;
 
-#if 0 //def DEBUG
+#if 1 //def DEBUG
     for ( int i=0; i<64; i++ ) fprintf( stderr, "%02x ", read_buf[i] );
     fprintf( stderr, "\n" );
 #endif
@@ -113,7 +113,7 @@ Mustang::handleInput( void ) {
       int preset_category = read_buf[3];
 
       switch( dsp_category ) {
-        // Response for DSP data and/or patch-change
+        //Response for DSP data and/or patch-change
         //
         case 0x00:
         {
@@ -122,6 +122,8 @@ Mustang::handleInput( void ) {
           pc_ack_sync.value = true;
           pthread_cond_signal( &pc_ack_sync.cond );
           pthread_mutex_unlock( &pc_ack_sync.lock );
+
+          emit_event(new AmpEvent(AmpEvent::PatchChanged, curr_preset_idx));
           break;
         }
         case 0x04:
@@ -146,7 +148,9 @@ Mustang::handleInput( void ) {
           // the end of a complete parm dump or when manual patch
           // change occurs. Not clear if or how current EFX preset
           // is reported.
-          if ( 0 == preset_category ) curr_preset_idx = idx;
+          if ( 0 == preset_category ) {
+                curr_preset_idx = idx;
+           }
 
           pthread_mutex_unlock( &preset_names_sync.lock );
           break;
@@ -179,6 +183,7 @@ Mustang::handleInput( void ) {
             updateStompObj( read_buf );
             
             pthread_mutex_unlock( &dsp_sync[idx].lock );
+            emit_event(new AmpEvent(AmpEvent::StompChanged, (void *)curr_stomp));
           }
           break;
         }
@@ -207,6 +212,7 @@ Mustang::handleInput( void ) {
             updateDelayObj( read_buf );
           
             pthread_mutex_unlock( &dsp_sync[idx].lock );
+            emit_event(new AmpEvent(AmpEvent::DelayChanged, (void *)curr_delay));
           }
           break;
         }
@@ -756,6 +762,9 @@ Mustang::updateStompObj( const unsigned char *data ) {
     fprintf( stderr, "W - Stomp id {%x,%x} not expected\n", model[0], model[1] );
   }
 
+    for (auto i=0; i<5; i++)
+        new_stomp->param.push_back(data[32+i]);
+
   if ( new_stomp!=NULL ) {
     delete curr_stomp;
     curr_stomp = new_stomp;
@@ -1006,9 +1015,11 @@ Mustang::updateDelayObj( const unsigned char *data ) {
   if ( match16(mono_dly_id,model) ) {
     new_delay = new MonoDelayCC( this, model, slot );
   }
-  else if ( match16(mono_filter_id,model) ||
-            match16(st_filter_id,model) ) {
-    new_delay = new EchoFilterCC( this, model, slot );
+  else if ( match16(mono_filter_id,model) ) {
+    new_delay = new MonoEchoDelayCC( this, model, slot );
+  } 
+  else if ( match16(st_filter_id,model) ) {
+    new_delay = new StereoEchoFilterCC( this, model, slot );
   }
   else if ( match16(mtap_dly_id,model) ) {
     new_delay = new MultitapDelayCC( this, model, slot );
@@ -1034,6 +1045,8 @@ Mustang::updateDelayObj( const unsigned char *data ) {
   else {
     fprintf( stderr, "W - Delay id {%x,%x} not expected\n", model[0], model[1] );
   }
+    for (auto i=0; i<6; i++)
+        new_delay->param.push_back(data[32+i]);
 
   if ( new_delay!=NULL ) {
     delete curr_delay;

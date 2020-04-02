@@ -4,6 +4,12 @@
 #define _DELAY_H
 
 #include <cstring>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <vector>
+
+using namespace std;
 
 class Mustang;
 
@@ -17,6 +23,10 @@ protected:
   int continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
   int discrete_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
 
+  string name;
+  vector<string> paramName;
+
+
 public:
   DelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -28,6 +38,22 @@ public:
   int dispatch( int cc, int value, unsigned char *cmd );
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
+
+  const std::string to_json(void) {
+    std::stringstream ss;
+    ss   << "{ \"name\": \"" << name << "\", "
+         << " \"type\": \"Delay\", "
+         << "  \"params\": { ";
+    for (auto i=0; i < paramName.size(); i++) {
+        if (i) ss << ",";
+        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+    }
+    ss   << "}}";
+    return ss.str();
+  }
+
+  vector<int> param;
+
 
 private:
   // Level
@@ -44,7 +70,10 @@ private:
 
 class MonoDelayCC : public DelayCC {
 public:
-  MonoDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  MonoDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Mono Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Brightness", "Attenuation" };
+    }
 private:
   // Feedback
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -56,6 +85,21 @@ private:
   virtual int cc54( int value, unsigned char *cmd ) { return -1;}
 };
 
+class MonoEchoDelayCC: public MonoDelayCC {
+    public:
+  MonoEchoDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : MonoDelayCC(theAmp,model,theSlot) {
+      name = "Mono Echo Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Frequency", "Resonance", "Input Level" };
+    }
+};
+
+class StereoEchoFilterCC: public MonoDelayCC {
+    public:
+  StereoEchoFilterCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : MonoDelayCC(theAmp,model,theSlot) {
+      name = "Stereo Echo Filter";
+      paramName = { "Level", "Delay Time", "Feedback", "Frequency", "Resonance", "Input Level" };
+    }
+};
 
 class EchoFilterCC : public DelayCC {
 public:
@@ -74,7 +118,10 @@ private:
 
 class MultitapDelayCC : public DelayCC {
 public:
-  MultitapDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  MultitapDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Multitap Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Brightness", "Mode" };
+  }
 private:
   // Delay Time
   virtual int cc50( int value, unsigned char *cmd ) { return continuous_control( 0x01, 0x01, 0x08, value, cmd );}
@@ -94,7 +141,10 @@ private:
 
 class PingPongDelayCC : public DelayCC {
 public:
-  PingPongDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  PingPongDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Ping Pong Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Brightness", "Stereo" };
+  }
 private:
   // Feedback
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -109,7 +159,10 @@ private:
 
 class DuckingDelayCC : public DelayCC {
 public:
-  DuckingDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  DuckingDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Ducking Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Release", "Threshold" };
+  }
 private:
   // Feedback
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -124,7 +177,10 @@ private:
 
 class ReverseDelayCC : public DelayCC {
 public:
-  ReverseDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  ReverseDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Reverse Delay";
+      paramName = { "Level", "Delay Time", "FFdbk", "RFdbk", "Tone" };
+  }
 private:
   // FFdbk
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -139,7 +195,10 @@ private:
 
 class TapeDelayCC : public DelayCC {
 public:
-  TapeDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  TapeDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Tape Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Flutter", "Brightness", "Stereo" };
+  }
 private:
   // Feedback
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -154,7 +213,10 @@ private:
 
 class StereoTapeDelayCC : public DelayCC {
 public:
-  StereoTapeDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  StereoTapeDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "Stereo Tape Delay";
+      paramName = { "Level", "Delay Time", "Feedback", "Flutter", "Separation", "Brightness" };
+  }
 private:
   // Feedback
   virtual int cc51( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x01, value, cmd );}
@@ -169,7 +231,10 @@ private:
 
 class NullDelayCC : public DelayCC {
 public:
-  NullDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {}
+  NullDelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : DelayCC(theAmp,model,theSlot) {
+      name = "None";
+      paramName = {};
+  }
 private:
   virtual int cc49( int value, unsigned char *cmd ) { return -1;}
   virtual int cc50( int value, unsigned char *cmd ) { return -1;}
