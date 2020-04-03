@@ -44,12 +44,58 @@ public:
     printf("################ Model 0x%02x 0x%02x\n", model[0], model[1]);
     paramName = { "Volume", "Gain", "Gain2", "Master_vol", "Treble", "Middle", "Bass", "Presence", "", "Depth", "Bias", "", "", "", "", "Noise_gate", "Threshold", "Cabinet", "", "Sag", };
     switch(model[0]) {
-    case 0xf1:
-        name = "Studio Preamp";
+    	case 0xf1:
+        	name = "Studio Preamp";
+ 		break;
+	case 0xf6:
+		name = "'57 Twin";
         break;
-    case 0xf6:
-        name = "'57 Twin";
+ 	case 0x7c:
+		name = "'57 Champ";
+		break;
+    case 0x67:
+        name = "'57 Deluxe";
         break;
+    case 0x64:
+        name = "'59 Bassman";
+        break;
+    case 0x6a:
+        name = "'65 Princeton";
+        break;
+    case 0x53:
+        name = "'65 Deluxe Reverb";
+        break;
+    case 0x75:
+        name = "'65 Twin Reverb";
+        break;
+    case 0xf9:
+        name = "'60s Thrift";
+        break;
+    case 0xff:
+        name = "British Watts";
+        break;
+    case 0x61:
+        name = "British '60s";
+        break;
+    case 0x79:
+        name = "British '70s";
+        break;
+    case 0x5e:
+        name = "British '80s";
+        break;
+    case 0xfc:
+        name = "British Colour";
+        break;
+    case 0x72:
+        name = "Super-Sonic (Burn)";
+        break;
+    case 0x5d:
+        name = "American '90s";
+        break;
+    case 0x6d:
+	    name = "Metal 2000";
+	    break;
+
     }
   }
 
