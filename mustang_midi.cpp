@@ -136,10 +136,24 @@ void message_action( double deltatime, std::vector< unsigned char > *message, vo
   case 0xc0: {
     // Program change
     int bank = (int)(*message)[1];
+
+    int retries = 16;
+    while (retries--) {
+    	int rc = mustang.patchChange( bank );
+    	if ( rc ) {
+      		fprintf( stderr, "Error: PC#%d failed. RC = %d\n", bank, rc );
+    	} else {
+		break;
+	}
+	// usleep(10);
+    }
+
+#if 0
     int rc = mustang.patchChange( bank );
     if ( rc ) {
       fprintf( stderr, "Error: PC#%d failed. RC = %d\n", bank, rc );
     }
+#endif
   }
   break;
     
