@@ -15,7 +15,7 @@ using namespace std;
 #define USB_IN  0x81
 #define USB_OUT 0x01
 
-#define USB_TIMEOUT_MS 500
+#define USB_TIMEOUT_MS 50 // b2ornot2b: was 500
 
 class AmpCC;
 class ReverbCC;
