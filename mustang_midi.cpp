@@ -5,9 +5,11 @@
 #include <cerrno>
 
 #include "mustang.h"
+#include "amp.h"
 #include "stomp.h"
 #include "delay.h"
 #include "reverb.h"
+#include "mod.h"
 
 // If you see a compiler error complaining about a missing 
 // symbol 'RtMidiError' you probably have an old version of
@@ -67,53 +69,47 @@ void handle_sysex(std::vector< unsigned char > *message, void *userData ) {
     }
 }
 
-void send_sysex(unsigned char *msg, size_t len) {
-    unsigned char dmsg[1+len+1];
-    unsigned char *pos = dmsg;
+void send_sysex(const char *msg, size_t len) {
+    char dmsg[1+len+1];
+    char *pos = dmsg;
 
     *pos++ = 0xF0;
     memcpy(pos, msg, len);
     pos += len;
     *pos++ = 0xF7;
-    midi_out->sendMessage(dmsg, pos-dmsg);
+    midi_out->sendMessage((const unsigned char *)dmsg, pos-dmsg);
 }
 
 void message_out_action(AmpEvent *ev) {
 #ifdef DEBUG
     fprintf(stderr, "event: ev=%p type=%d pint1=%d\n", ev, ev->type, ev->pint1);
 #endif
+    FX *fx = (FX *)ev->ptr;
+    string json;
     switch (ev->type) {
     case AmpEvent::PatchChanged:
-        {
-        fprintf(stderr, "PatchChanged patch=%d\n", ev->pint1);
+        json = ev->str_val;
+        /*fprintf(stderr, "PatchChanged patch=%d\n", ev->pint1);
+        int idx = ev->pint1;
         unsigned char msb = (ev->pint1 & 0x3f80) >> 7;
         unsigned char lsb = (ev->pint1 & 0x007f);
         unsigned char msg[] = { 0x02, msb, lsb };
-        send_sysex(msg, sizeof(msg));
-        }
+        send_sysex(msg, sizeof(msg));*/
         break;
+    case AmpEvent::AmpChanged:
     case AmpEvent::StompChanged:
-        {
-        StompCC *stomp = (StompCC *)ev->ptr;
-        fprintf(stderr, "StompChanged -%s-\n", stomp->to_json().c_str());
-        }
-        break;
     case AmpEvent::DelayChanged:
-        {
-        DelayCC *delay = (DelayCC *)ev->ptr;
-        fprintf(stderr, "DelayChanged -%s-\n", delay->to_json().c_str());
-        }
-        break;
-     case AmpEvent::ReverbChanged:
-        {
-        ReverbCC *reverb = (ReverbCC *)ev->ptr;
-        fprintf(stderr, "ReverbChanged -%s-\n", reverb->to_json().c_str());
-        }
+    case AmpEvent::ModChanged:
+    case AmpEvent::ReverbChanged:
+        json = fx->to_json();
         break;
     default:
         fprintf(stderr, "Unhandled event type=%d\n", ev->type);
+        return;
         break;
     }
+    fprintf(stderr, "Changed -%s-\n", json.c_str());
+    send_sysex(json.c_str(), json.length());
 }
 
 void message_action( double deltatime, std::vector< unsigned char > *message, void *userData ) {

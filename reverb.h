@@ -8,11 +8,14 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+
+#include "fx.h"
+
 using namespace std;
 
 class Mustang;
 
-class ReverbCC {
+class ReverbCC : public FX {
 
 protected:
   Mustang * amp;
@@ -21,16 +24,15 @@ protected:
 
   int continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
 
+public:
   string name;
   vector<string> paramName;
 
-public:
   ReverbCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
     slot(theSlot) 
   {
     memcpy( this->model, model, 2 );
-    cout << "\n\nREVERB --- " << std::hex << int(model[0]) << " " << std::hex << int(model[1]) << endl;
     switch (model[0]) {
     case 0x4c:
         name = "Ambient";

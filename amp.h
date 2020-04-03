@@ -4,6 +4,14 @@
 #define _AMPCC_H
 
 #include <cstring>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+
+#include "fx.h"
+
+using namespace std;
 
 class Mustang;
 
@@ -13,7 +21,7 @@ class Mustang;
 // F65 Princeton
 // 60s Thrift
 //
-class AmpCC {
+class AmpCC : public FX {
 
 protected:
   Mustang * amp;
@@ -24,16 +32,49 @@ protected:
   int discrete_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
 
 public:
+  string name;
+  vector<int> param;
+  vector<string> paramName;
+
   AmpCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
     slot(theSlot) 
   {
     memcpy( this->model, model, 2 );
+    printf("################ Model 0x%02x 0x%02x\n", model[0], model[1]);
+    paramName = { "Volume", "Gain", "Gain2", "Master_vol", "Treble", "Middle", "Bass", "Presence", "", "Depth", "Bias", "", "", "", "", "Noise_gate", "Threshold", "Cabinet", "", "Sag", };
+    switch(model[0]) {
+    case 0xf1:
+        name = "Studio Preamp";
+        break;
+    case 0xf6:
+        name = "'57 Twin";
+        break;
+    }
   }
 
   int dispatch( int cc, int value, unsigned char *cmd );
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
+
+  const std::string to_json(void) {
+    std::stringstream ss;
+    ss   << "{ \"name\": \"" << name << "\", "
+         << " \"type\": \"Amp\", "
+         << "  \"params\": { ";
+    auto need_comma=false;
+    for (auto i=0; i < paramName.size(); i++) {
+        if (paramName[i].empty())
+            continue;
+        if (need_comma) ss << ",";
+        need_comma = true;
+        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+    }
+    ss   << "}}";
+    return ss.str();
+  }
+
+ 
 
 private:
   // Gain

@@ -9,13 +9,13 @@
 #include <sstream>
 #include <vector>
 
-//#include "json.hpp"
-//using namespace nlohmann;
+#include "fx.h"
+
 using namespace std;
 
 class Mustang;
 
-class StompCC {
+class StompCC : public FX {
 
 protected:
   Mustang * amp;
@@ -25,10 +25,12 @@ protected:
   int continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
   int discrete_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
 
-  string name;
-  vector<string> paramName;
 
 public:
+  string name;
+  vector<string> paramName;
+  vector<int> param;
+
   StompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
     slot(theSlot) 
@@ -40,7 +42,6 @@ public:
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
 
-  vector<int> param;
 
 
   const std::string to_json(void) {

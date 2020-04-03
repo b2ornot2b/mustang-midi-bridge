@@ -5,9 +5,12 @@
 
 #include <stdint.h>
 #include <cstring>
+#include <string>
 #include <libusb-1.0/libusb.h>
 #include <pthread.h>
 #include "constants.h"
+
+using namespace std;
 
 #define USB_IN  0x81
 #define USB_OUT 0x01
@@ -22,11 +25,12 @@ class StompCC;
 
 class AmpEvent {
     public:
-        typedef enum { PatchChanged, StompChanged, DelayChanged, ReverbChanged } event_type_t;
+        typedef enum { PatchChanged, AmpChanged, StompChanged, DelayChanged, ReverbChanged, ModChanged } event_type_t;
         event_type_t type;
 
         int pint1;
         void *ptr;
+	string str_val;
 
         AmpEvent(event_type_t evt, int p1) {
             type = evt;
@@ -35,6 +39,10 @@ class AmpEvent {
         AmpEvent(event_type_t evt, void *p) {
             type = evt;
             ptr = p;
+        }
+        AmpEvent(event_type_t evt, std::string s) {
+            type = evt;
+            str_val = s;
         }
 };
 typedef void (*event_callback_t) (AmpEvent *) ;

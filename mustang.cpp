@@ -100,7 +100,7 @@ Mustang::handleInput( void ) {
     if ( total_count!=64 ) continue;
     total_count = 0;
 
-#if 1 //def DEBUG
+#ifdef DEBUG
     for ( int i=0; i<64; i++ ) fprintf( stderr, "%02x ", read_buf[i] );
     fprintf( stderr, "\n" );
 #endif
@@ -123,7 +123,12 @@ Mustang::handleInput( void ) {
           pthread_cond_signal( &pc_ack_sync.cond );
           pthread_mutex_unlock( &pc_ack_sync.lock );
 
-          emit_event(new AmpEvent(AmpEvent::PatchChanged, curr_preset_idx));
+        std::stringstream ss;
+        ss  << "{ \"name\": \"" << preset_names.names[curr_preset_idx] << "\", "
+            << " \"type\": \"PatchChange\", "
+            << "  \"params\": { \"idx\": " << curr_preset_idx << "  } }";
+
+          emit_event(new AmpEvent(AmpEvent::PatchChanged, ss.str()));
           break;
         }
         case 0x04:
@@ -169,6 +174,7 @@ Mustang::handleInput( void ) {
             updateAmpObj( read_buf );
             
             pthread_mutex_unlock( &dsp_sync[idx].lock );
+            emit_event(new AmpEvent(AmpEvent::AmpChanged, (void *)curr_amp));
           }
           break;
         }
@@ -198,6 +204,7 @@ Mustang::handleInput( void ) {
             updateModObj( read_buf );
           
             pthread_mutex_unlock( &dsp_sync[idx].lock );
+            emit_event(new AmpEvent(AmpEvent::ModChanged, (void *)curr_mod));
           }
           break;
         }
@@ -613,6 +620,9 @@ Mustang::updateAmpObj( const unsigned char *data ) {
     fprintf( stderr, "W - Amp id {%x,%x} not expected\n", model[0], model[1] );
   }
 
+    for (auto i=0; i<new_amp->paramName.size(); i++)
+        new_amp->param.push_back(data[32+i]);
+
   if ( new_amp!=NULL ) {
     delete curr_amp;
     curr_amp = new_amp;
@@ -763,7 +773,7 @@ Mustang::updateStompObj( const unsigned char *data ) {
     fprintf( stderr, "W - Stomp id {%x,%x} not expected\n", model[0], model[1] );
   }
 
-    for (auto i=0; i<5; i++)
+    for (auto i=0; i<new_stomp->paramName.size(); i++)
         new_stomp->param.push_back(data[32+i]);
 
   if ( new_stomp!=NULL ) {
@@ -910,6 +920,9 @@ Mustang::updateModObj( const unsigned char *data ) {
     fprintf( stderr, "W - Mod id {%x,%x} not expected\n", model[0], model[1] );
   }
 
+    for (auto i=0; i<new_mod->paramName.size(); i++)
+        new_mod->param.push_back(data[32+i]);
+
   if ( new_mod!=NULL ) {
     delete curr_mod;
     curr_mod = new_mod;
@@ -1046,7 +1059,7 @@ Mustang::updateDelayObj( const unsigned char *data ) {
   else {
     fprintf( stderr, "W - Delay id {%x,%x} not expected\n", model[0], model[1] );
   }
-    for (auto i=0; i<6; i++)
+    for (auto i=0; i<new_delay->paramName.size(); i++)
         new_delay->param.push_back(data[32+i]);
 
   if ( new_delay!=NULL ) {
@@ -1135,7 +1148,7 @@ Mustang::updateReverbObj( const unsigned char *data ) {
   else {
     curr_reverb = new ReverbCC( this, model, slot );
   }
-    for (auto i=0; i<5; i++)
+    for (auto i=0; i<curr_reverb->paramName.size(); i++)
         curr_reverb->param.push_back(data[32+i]);
 
 }

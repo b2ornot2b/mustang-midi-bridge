@@ -4,10 +4,18 @@
 #define _MOD_H
 
 #include <cstring>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+
+#include "fx.h"
+
+using namespace std;
 
 class Mustang;
 
-class ModCC {
+class ModCC : public FX {
 
 protected:
   Mustang * amp;
@@ -16,6 +24,8 @@ protected:
 
   int continuous_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
   int discrete_control( int parm5, int parm6, int parm7, int value, unsigned char *cmd );
+
+  string name;
 
 public:
   ModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
@@ -29,6 +39,23 @@ public:
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
 
+  const std::string to_json(void) {
+    std::stringstream ss;
+    ss   << "{ \"name\": \"" << name << "\", "
+         << " \"type\": \"Modulation\", "
+         << "  \"params\": { ";
+    for (auto i=0; i < paramName.size(); i++) {
+        if (i) ss << ",";
+        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+    }
+    ss   << "}}";
+    return ss.str();
+  }
+
+  vector<int> param;
+  vector<string> paramName;
+
+
 private:
   virtual int cc39( int value, unsigned char *cmd ) = 0;
   virtual int cc40( int value, unsigned char *cmd ) = 0;
@@ -40,7 +67,17 @@ private:
 
 class ChorusCC : public ModCC {
 public:
-  ChorusCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  ChorusCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      switch (model[0]) {
+      case 0x12:
+          name = "Sine Chorus";
+          break;
+      case 0x13:
+          name = "Triangle Chorus";
+          break;
+      }
+      paramName = { "Level", "Rate", "Depth", "Average Delay", "LR Phase" };
+  }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -57,7 +94,17 @@ private:
 
 class FlangerCC : public ModCC {
 public:
-  FlangerCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  FlangerCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      switch (model[0]) {
+      case 0x18:
+          name = "Sine Flanger";
+          break;
+      case 0x19:
+          name = "Triangle Flanger";
+          break;
+      }
+      paramName = { "Level", "Rate", "Depth", "Feedback", "LR Phase" };
+     }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -74,7 +121,10 @@ private:
 
 class VibratoneCC : public ModCC {
 public:
-  VibratoneCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  VibratoneCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Vibratone";
+      paramName = { "Level", "Rotor Speed", "Depth", "Feedback", "LR Phase" };
+}
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -91,7 +141,18 @@ private:
 
 class TremCC : public ModCC {
 public:
-  TremCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  TremCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+    switch (model[0]) {
+    case 0x40:
+        name = "Vintage Tremolo";
+        paramName = { "Level", "Rate", "Duty Cycle", "Attack Time", "Release Time" };
+        break;
+    case 0x41:
+        name = "Sine Tremolo";
+        paramName = { "Level", "Rate", "Duty Cycle", "LFO Clipping", "Tri Shaping" };
+        break;
+    }
+  }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -108,7 +169,10 @@ private:
 
 class RingModCC : public ModCC {
 public:
-  RingModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  RingModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Ring Modulator";
+      paramName = { "Level", "Frequency", "Depth", "LFO Shape", "LFO Phase" };
+    }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -128,7 +192,10 @@ private:
 
 class StepFilterCC : public ModCC {
 public:
-  StepFilterCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  StepFilterCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Step Filter";
+      paramName = { "Level", "Rate", "Resonance", "Min Freq", "Max Freq" };
+    }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -145,7 +212,10 @@ private:
 
 class PhaserCC : public ModCC {
 public:
-  PhaserCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  PhaserCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Phaser";
+      paramName = { "Level", "Rate", "Depth", "Feedback", "LFO Shape" };
+}
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -165,7 +235,10 @@ private:
 
 class PitchShifterCC : public ModCC {
 public:
-  PitchShifterCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  PitchShifterCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Pitch Shift";
+      paramName = { "Level", "Rate", "Detune", "Feedback", "Pre Delay" };
+  }
 private:
   // Level
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -182,7 +255,18 @@ private:
 // Wah + Touch Wah
 class ModWahCC : public ModCC {
 public:
-  ModWahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  ModWahCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      switch (model[0]) {
+        case 0xf4:
+            name = "Wah";
+            paramName = { "Mix", "Frequency", "Heel Freq", "Toe Freq", "High Q" };
+            break;
+        case 0xf5:
+            name = "Touch Wah";
+            paramName = { "Mix", "Sensitivity", "Min Freq", "Max Freq", "High Q" };
+            break;
+      }
+    }
 private:
   // Mix
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -202,7 +286,10 @@ private:
 
 class DiatonicShiftCC : public ModCC {
 public:
-  DiatonicShiftCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  DiatonicShiftCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "Diatonic Pitch Shift";
+      paramName = { "Mix", "Pitch", "Key", "Scale", "Tone" };
+    }
 private:
   // Mix
   virtual int cc39( int value, unsigned char *cmd ) { return continuous_control( 0x00, 0x00, 0x01, value, cmd );}
@@ -228,7 +315,10 @@ private:
 
 class NullModCC : public ModCC {
 public:
-  NullModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {}
+  NullModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ModCC(theAmp,model,theSlot) {
+      name = "None";
+      paramName = { };
+    }
 private:
   virtual int cc39( int value, unsigned char *cmd ) { return -1;}
   virtual int cc40( int value, unsigned char *cmd ) { return -1;}
