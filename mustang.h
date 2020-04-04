@@ -86,6 +86,7 @@ class Mustang {
 
   // Identify patch-change ack / DSP parm update
   static const unsigned char state_prefix[];
+  static const unsigned char parm_change_prefix[];
 
   // Received {0x1c, 0x01, 0x00, ...}
   // --> End of preset select acknowledge stream

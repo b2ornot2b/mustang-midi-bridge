@@ -43,7 +43,28 @@ public:
   {
     memcpy( this->model, model, 2 );
     printf("################ Model 0x%02x 0x%02x\n", model[0], model[1]);
-    paramName = { "Volume", "Gain", "Gain2", "Master_vol", "Treble", "Middle", "Bass", "Presence", "", "Depth", "Bias", "", "", "", "", "Noise_gate", "Threshold", "Cabinet", "", "Sag", };
+    paramName = { 
+        "Volume", // 0
+        "Gain", 
+        "Blend", 
+        "Master_vol", 
+        "Treble", 
+
+        "Middle", // 5
+        "Bass", 
+        "Presence", 
+        "", 
+        "Depth", 
+
+        "Bias", // 10
+        "", "", "", "", 
+        
+        "Noise_gate", // 15 
+        "Threshold", 
+        "Cabinet", 
+        "",
+        "Sag", 
+    };
     paramCC = {  70, // vol
 	    69, // gain
 	    78, // gain2
@@ -196,7 +217,13 @@ private:
 //
 class AmpCC1 : public AmpCC {
 public:
-  AmpCC1( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC1( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+    paramName[7] = "Presence";
+    paramCC[7] = 78;
+
+    paramName[2] = "Blend";
+    paramCC[2] = 79;
+  }
 private:
   // Presence
   virtual int cc78( int value, unsigned char *cmd ) { return continuous_control( 0x07, 0x07, 0x0c, value, cmd );}
@@ -209,7 +236,13 @@ private:
 //
 class AmpCC2 : public AmpCC {
 public:
-  AmpCC2( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC2( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[2] = "Gain2";
+      paramCC[2] = 78;
+
+      paramName[3] = "Master_vol";
+      paramCC[3] = 79;
+  }
 private:
   // Gain2
   virtual int cc78( int value, unsigned char *cmd ) { return continuous_control( 0x02, 0x02, 0x0c, value, cmd );}
@@ -222,7 +255,16 @@ private:
 //
 class AmpCC3 : public AmpCC {
 public:
-  AmpCC3( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC3( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+    paramName[0x07] = "Cut";
+    paramCC[0x07] = 78;
+
+    paramName[0x03] = "Master_vol";
+    paramCC[0x03] = 78;
+
+    paramName[0x14] = "Bright_sw";
+    paramCC[0x14] = 92;
+}
 private:
   // Cut
   virtual int cc78( int value, unsigned char *cmd ) { return continuous_control( 0x07, 0x07, 0x0c, value, cmd );}
@@ -247,7 +289,13 @@ private:
 //
 class AmpCC4 : public AmpCC {
 public:
-  AmpCC4( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC4( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[0x07] = "Presence";
+      paramCC[0x07] = 78;
+
+      paramName[0x03] = "Master_vol";
+      paramCC[0x03] = 79;
+  }
 private:
   // Presence
   virtual int cc78( int value, unsigned char *cmd ) { return continuous_control( 0x07, 0x07, 0x0c, value, cmd );}
@@ -260,7 +308,12 @@ private:
 //
 class AmpCC5 : public AmpCC {
 public:
-  AmpCC5( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC5( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[19] = "";
+      paramName[10] = "";
+      paramName[7] = "";
+      paramName[4] = "";
+  }
 private:
   // No sag / bias
   virtual int cc74( int value, unsigned char *cmd ) { return -1;}
@@ -275,7 +328,10 @@ private:
 //
 class AmpCC6 : public AmpCC {
 public:
-  AmpCC6( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {;}
+  AmpCC6( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[0x03] = "Master_vol";
+      paramCC[0x03] = 79;
+  }
 private:
   // Master Volume
   virtual int cc79( int value, unsigned char *cmd ) { return continuous_control( 0x03, 0x03, 0x0c, value, cmd );}
@@ -286,7 +342,10 @@ private:
 //
 class AmpCC7 : public AmpCC {
 public:
-  AmpCC7( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC7( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[0x07] = "Presence";
+      paramCC[0x07] = 78;
+  }
 private:
   // Presence
   virtual int cc78( int value, unsigned char *cmd ) { return continuous_control( 0x07, 0x07, 0x0c, value, cmd );}
@@ -297,7 +356,10 @@ private:
 //
 class AmpCC8 : public AmpCC {
 public:
-  AmpCC8( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  AmpCC8( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      paramName[0x14] = "Bright_sw";
+      paramCC[0x14] = 92;
+  }
 private:
   // Bright Switch
   virtual int cc92( int value, unsigned char *cmd ) { 
@@ -315,7 +377,11 @@ private:
 //
 class NullAmpCC : public AmpCC {
 public:
-  NullAmpCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {}
+  NullAmpCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : AmpCC(theAmp,model,theSlot) {
+      for (auto i=69; i<80; i++) {
+          paramName[i] = "";
+      }
+  }
 private:
   virtual int cc69( int value, unsigned char *cmd ) { return -1;}
   virtual int cc70( int value, unsigned char *cmd ) { return -1;}

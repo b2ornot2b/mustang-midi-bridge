@@ -41,6 +41,9 @@ const unsigned char Mustang::efx_toggle_ack[] = { 0x00, 0x00, 0x19 };
 // Acknowledge CC
 const unsigned char Mustang::cc_ack[] = { 0x00, 0x00, 0x05 };
 
+// Effect Param Change
+const unsigned char Mustang::parm_change_prefix[] = { 0x05, 0x01, };
+
 
 const Mustang::usb_id Mustang::amp_ids[] = {
     { MI_II_V1,         0x03, false },
@@ -104,6 +107,8 @@ Mustang::handleInput( void ) {
     for ( int i=0; i<64; i++ ) fprintf( stderr, "%02x ", read_buf[i] );
     fprintf( stderr, "\n" );
 #endif
+    // 05 01 02 6d 00 01 01 0c 00 ff ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
 
     if ( 0==memcmp(read_buf,state_prefix,2) ) {
       // Only care about amp state messages, and not even all of them...
@@ -291,6 +296,14 @@ Mustang::handleInput( void ) {
       tuner_ack_sync.value = read_buf[2]==0x01 ? true : false;
       pthread_cond_signal( &tuner_ack_sync.cond );
       pthread_mutex_unlock( &tuner_ack_sync.lock );
+    }
+    else if ( 0==memcmp(read_buf,parm_change_prefix,2) ){
+
+        int slot = read_buf[2];
+        int fx = read_buf[3];
+        int parm = read_buf[6];
+        int value = read_buf[10];
+        fprintf(stderr, "Param Changed slot=%x fx=%x parm=%x value=%x\n", slot, fx, parm, value);
     }
   }
 
