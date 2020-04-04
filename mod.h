@@ -33,6 +33,7 @@ public:
     slot(theSlot) 
   {
     memcpy( this->model, model, 2 );
+    paramCC = {    	39, 	40, 	41, 	42, 	43 };
   }
 
   int dispatch( int cc, int value, unsigned char *cmd );
@@ -46,7 +47,9 @@ public:
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";
-        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+        ss << " \"" << paramName[i] << "\": ";
+      	ss << "[" << param[i] << "," << std::dec << paramCC[i] << "]";
+        //ss << " \"" << paramName[i] << "\": " << param[i] << " ";
     }
     ss   << "}}";
     return ss.str();
@@ -54,6 +57,7 @@ public:
 
   vector<int> param;
   vector<string> paramName;
+  vector<int> paramCC;
 
 
 private:

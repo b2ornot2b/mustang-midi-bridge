@@ -30,6 +30,7 @@ protected:
 public:
   string name;
   vector<string> paramName;
+  vector<int> paramCC;
   vector<int> param;
 
   DelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
@@ -37,6 +38,7 @@ public:
     slot(theSlot) 
   {
     memcpy( this->model, model, 2 );
+    paramCC = {    	49, 	50, 	51, 	52, 	53 };
   }
 
   int dispatch( int cc, int value, unsigned char *cmd );
@@ -50,7 +52,9 @@ public:
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";
-        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+        ss << " \"" << paramName[i] << "\": ";
+      	ss << "[" << param[i] << "," << std::dec << paramCC[i] << "]";
+        //ss << " \"" << paramName[i] << "\": " << param[i] << " ";
     }
     ss   << "}}";
     return ss.str();

@@ -27,6 +27,7 @@ protected:
 public:
   string name;
   vector<string> paramName;
+  vector<int> paramCC;
 
   ReverbCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -70,6 +71,7 @@ public:
     } 
     
     paramName = { "Level", "Decay", "Dwell", "Diffusion", "Tone" };
+    paramCC = {    	59, 	60, 	61, 	62, 	63 };
   }
 
   int dispatch( int cc, int value, unsigned char *cmd );
@@ -83,9 +85,11 @@ public:
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";
-        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+        ss << " \"" << paramName[i] << "\": ";
+      	ss << "[" << param[i] << "," << std::dec << paramCC[i] << "]";
     }
     ss   << "}}";
+    fprintf(stderr, "json=-%s-\n", ss.str().c_str());
     return ss.str();
   }
 
@@ -111,6 +115,7 @@ public:
   NullReverbCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : ReverbCC(theAmp,model,theSlot) {
       name = "None";
       paramName = { };
+      paramCC = { };
   }
 private:
   int cc59( int value, unsigned char *cmd ) { return -1;}

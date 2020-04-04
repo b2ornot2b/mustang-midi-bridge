@@ -34,6 +34,7 @@ protected:
 public:
   string name;
   vector<int> param;
+  vector<int> paramCC;
   vector<string> paramName;
 
   AmpCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
@@ -43,6 +44,28 @@ public:
     memcpy( this->model, model, 2 );
     printf("################ Model 0x%02x 0x%02x\n", model[0], model[1]);
     paramName = { "Volume", "Gain", "Gain2", "Master_vol", "Treble", "Middle", "Bass", "Presence", "", "Depth", "Bias", "", "", "", "", "Noise_gate", "Threshold", "Cabinet", "", "Sag", };
+    paramCC = {  70, // vol
+	    69, // gain
+	    78, // gain2
+	    79, // Master_vol
+	    71, // Treble
+	    72, // Middle
+	    73, // Bass
+	    78, // Presence
+	    0, 
+	    91, // Depth
+	    75, // Bias
+	    0, 0, 0, 0,
+	    76, // Noise_gate
+	    90, // Threshold
+	    77, // Cabinet
+	    0,
+	    74, // Sag
+    };
+    // 70,  // Channel_vol
+    // 92, // Brightness
+    // 78, // Cut
+    // 79, // Blend
     switch(model[0]) {
     	case 0xf1:
         	name = "Studio Preamp";
@@ -97,8 +120,7 @@ public:
 	    break;
 
     }
-  }
-
+  } 
   int dispatch( int cc, int value, unsigned char *cmd );
   const unsigned char *getModel( void ) { return model;}
   const unsigned char getSlot( void ) { return slot;}
@@ -114,7 +136,9 @@ public:
             continue;
         if (need_comma) ss << ",";
         need_comma = true;
-        ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+        // ss << " \"" << paramName[i] << "\": " << param[i] << " ";
+        ss << " \"" << paramName[i] << "\": ";
+      	ss << "[" << param[i] << "," << std::dec << paramCC[i] << "]";
     }
     ss   << "}}";
     return ss.str();
