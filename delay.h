@@ -38,7 +38,7 @@ public:
     slot(theSlot) 
   {
     memcpy( this->model, model, 2 );
-    paramCC = {    	49, 	50, 	51, 	52, 	53 };
+    paramCC = {    	49, 	50, 	51, 	52, 	53, 54 };
   }
 
   int dispatch( int cc, int value, unsigned char *cmd );
