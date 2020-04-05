@@ -108,7 +108,7 @@ void message_out_action(AmpEvent *ev) {
         return;
         break;
     }
-    fprintf(stderr, "Changed -%s-\n", json.c_str());
+    // fprintf(stderr, "Changed -%s-\n", json.c_str());
     send_sysex(json.c_str(), json.length());
 }
 
