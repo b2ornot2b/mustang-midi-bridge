@@ -49,6 +49,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Delay\", "
+	 << " \"cc\": 25, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";

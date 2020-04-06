@@ -44,6 +44,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Modulation\", "
+	 << " \"cc\": 24, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";

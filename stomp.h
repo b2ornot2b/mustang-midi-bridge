@@ -50,6 +50,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Stomp\", "
+	 << " \"cc\": 23, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";

@@ -82,6 +82,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Reverb\", "
+	 << " \"cc\": 26, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
         if (i) ss << ",";

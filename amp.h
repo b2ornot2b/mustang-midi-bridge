@@ -153,6 +153,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Amp\", "
+	 << " \"cc\": 27, "
          << "  \"params\": { ";
     auto need_comma=false;
     for (auto i=0; i < paramName.size(); i++) {
