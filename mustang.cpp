@@ -315,7 +315,7 @@ Mustang::handleInput( void ) {
 int
 Mustang::sendCmd( unsigned char *buffer ) {
   int total_count = 0;
-  int attempts = 5;
+  int attempts = 20;
   
   while ( total_count < 64 ) {
     int count;

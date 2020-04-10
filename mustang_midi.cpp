@@ -137,7 +137,7 @@ void message_action( double deltatime, std::vector< unsigned char > *message, vo
     // Program change
     int bank = (int)(*message)[1];
 
-    int retries = 16;
+    int retries = 32;
     while (retries--) {
     	int rc = mustang.patchChange( bank );
     	if ( rc ) {
