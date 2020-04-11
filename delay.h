@@ -32,6 +32,7 @@ public:
   vector<string> paramName;
   vector<int> paramCC;
   vector<int> param;
+  bool enabled;
 
   DelayCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -49,6 +50,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Delay\", "
+	 << " \"enabled\": " << ( enabled ? "true": "false") << ", "
 	 << " \"cc\": 25, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {

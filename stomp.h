@@ -31,6 +31,7 @@ public:
   vector<string> paramName;
   vector<int> paramCC;
   vector<int> param;
+  bool enabled;
 
   StompCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -50,6 +51,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Stomp\", "
+	 << " \"enabled\": " << ( enabled ? "true": "false") << ", "
 	 << " \"cc\": 23, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {

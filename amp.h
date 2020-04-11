@@ -36,6 +36,7 @@ public:
   vector<int> param;
   vector<int> paramCC;
   vector<string> paramName;
+  bool enabled;
 
   AmpCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -153,6 +154,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Amp\", "
+	 << " \"enabled\": " << ( enabled ? "true": "false") << ", "
 	 << " \"cc\": 27, "
          << "  \"params\": { ";
     auto need_comma=false;

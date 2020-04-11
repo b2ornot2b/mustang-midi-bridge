@@ -28,6 +28,7 @@ public:
   string name;
   vector<string> paramName;
   vector<int> paramCC;
+  bool enabled;
 
   ReverbCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
@@ -82,6 +83,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Reverb\", "
+	 << " \"enabled\": " << ( enabled ? "true": "false") << ", "
 	 << " \"cc\": 26, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {

@@ -28,6 +28,11 @@ protected:
   string name;
 
 public:
+  vector<int> param;
+  vector<string> paramName;
+  vector<int> paramCC;
+  bool enabled;
+
   ModCC( Mustang * theAmp, const unsigned char *model, const unsigned char theSlot ) : 
     amp(theAmp), 
     slot(theSlot) 
@@ -44,6 +49,7 @@ public:
     std::stringstream ss;
     ss   << "{ \"name\": \"" << name << "\", "
          << " \"type\": \"Modulation\", "
+	 << " \"enabled\": " << ( enabled ? "true": "false") << ", "
 	 << " \"cc\": 24, "
          << "  \"params\": { ";
     for (auto i=0; i < paramName.size(); i++) {
@@ -55,10 +61,6 @@ public:
     ss   << "}}";
     return ss.str();
   }
-
-  vector<int> param;
-  vector<string> paramName;
-  vector<int> paramCC;
 
 
 private:
