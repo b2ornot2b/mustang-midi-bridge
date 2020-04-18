@@ -63,6 +63,10 @@ void handle_sysex_get_patches(std::vector< unsigned char > *message, void *userD
 void handle_sysex(std::vector< unsigned char > *message, void *userData ) {
     int msgType = (int)(*message)[1];
     switch (msgType) {
+    case 0x00: // KeepAlive
+	if (!mustang.keepAlive())
+		std::cerr << "keepAlive could not send" << std::endl;
+	break;
     case 0x01: // Get patchnames
         handle_sysex_get_patches(message, userData );
         break;

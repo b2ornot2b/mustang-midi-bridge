@@ -202,6 +202,14 @@ public:
   int patchChange( int );
 
   int effectToggle( int cc, int value );
+
+  bool keepAlive(void)
+  { 
+    static unsigned char buffer[64] = { 0 };
+    int count = 0;
+    int rc = libusb_interrupt_transfer( usb_io, USB_OUT, buffer, 64, &count, 1); // USB_TIMEOUT_MS );
+    return rc == 0;
+  }
 };
 
 
