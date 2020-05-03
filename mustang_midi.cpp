@@ -29,6 +29,26 @@ static Mustang mustang;
 
 static int channel;
 
+void handle_raw_mustang_cmd ( std::vector< unsigned char > *message, void *userData ) {
+    int nbytes = int((*message)[2]);
+    fprintf(stderr, "handle_raw_mustang_cmd: nbytes=%d\n", nbytes);
+    if (nbytes > 64)
+        return;
+    unsigned char buff[64]; 
+    for (auto i=0; i<nbytes; i++) {
+        std::string bytestr(message->begin() + 3 + i*2, message->begin() + 3 + i*2 + 2);
+        buff[i] = std::stoul(bytestr, nullptr, 16);
+    }
+
+    for (auto i=0; i<64; i++) {
+        fprintf(stderr, "%02x ", buff[i]);
+        if (!((i+1) % 17))
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+    mustang.executeModelChange(buff);
+} 
+
 void handle_sysex_get_patches(std::vector< unsigned char > *message, void *userData ) {
     bool refresh = ((int)(*message)[2] > 63);
 
@@ -69,6 +89,9 @@ void handle_sysex(std::vector< unsigned char > *message, void *userData ) {
 	break;
     case 0x01: // Get patchnames
         handle_sysex_get_patches(message, userData );
+        break;
+    case 0x02: // Raw Mustang Command
+        handle_raw_mustang_cmd(message, userData);
         break;
     }
 }
